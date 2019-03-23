@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="8.2.000">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="8.2.000" expanded="true" name="Process">
+    <process expanded="true">
+      <operator activated="false" class="subprocess" compatibility="8.2.000" expanded="true" height="82" name="Train Model" width="90" x="112" y="340">
+        <process expanded="true">
+          <operator activated="false" class="subprocess" compatibility="8.2.000" expanded="true" height="82" name="CrawlData GenerateLabel" width="90" x="179" y="238">
+            <process expanded="true">
+              <operator activated="true" class="python_scripting:execute_python" compatibility="7.4.000" expanded="true" height="82" name="Execute Python" width="90" x="581" y="34">
+                <parameter key="script" value="import pandas as pd&#10;import bs4 as bs&#10;import urllib.request&#10;import re&#10;import sys&#10;import json&#10;&#10;&#10;def rm_main():&#10;&#9;&#10;&#9;#CONCUTING URL AND ARGUMENT&#10;&#9;args = [&quot;el&quot;,&quot;da&quot;,&quot;de&quot;,&quot;en&quot;,&quot;es&quot;,&quot;fr&quot;,&quot;it&quot;,&quot;nl&quot;,&quot;pt&quot;,&quot;tr&quot;]&#10;&#9;links = []&#10;&#9;for a in args:&#10;&#9;&#9;url = &quot;https://policies.google.com/privacy/archive?hl=&quot;&#10;&#9;&#9;url2 = url+a&#10;&#9;&#10;&#9;&#9;#BEAUTIFUL SOUP STUFF&#10;&#9;&#9;source = urllib.request.urlopen(url2).read()&#10;&#9;&#9;soup = bs.BeautifulSoup(source,'lxml')&#10;&#9;&#10;&#9;&#9;#GETTING CONTENT OF THE UL&#10;&#9;&#9;link_list = soup.find('ul',{&quot;id&quot;: &quot;archives&quot;})&#10;&#9;&#10;&#9;&#9;#LINKS&#10;&#9;&#9;temp = 0;&#10;&#9;&#9;for li in link_list.findAll('li'):&#10;&#9;&#9;&#9;if (temp &gt;= 2):&#10;&#9;&#9;&#9;&#9;try:&#10;&#9;&#9;&#9;&#9;&#9;links.append(re.search('&lt;a href=&quot;https://(.+?)&quot;&gt;',str(li)).group(1))&#10;&#9;&#9;&#9;&#9;except AttributeError:&#10;&#9;&#9;&#9;&#9;&#9;links = 'fail'&#10;&#9;&#9;&#9;if(temp &lt; 2):&#10;&#9;&#9;&#9;&#9;temp +=1&#10;&#10;&#9;#DATATABLE WITH INFO&#10;&#9;df = pd.DataFrame({'Links':links})&#10;&#10;&#9;return df"/>
+              </operator>
+              <operator activated="true" class="generate_attributes" compatibility="8.2.000" expanded="true" height="82" name="Generate Attributes" width="90" x="715" y="34">
+                <list key="function_descriptions">
+                  <parameter key="class" value="if(contains(Links,&quot;el&quot;),&quot;Greek&quot;,if(contains(Links,&quot;da&quot;),&quot;Danish&quot;,if(contains(Links,&quot;de&quot;),&quot;German&quot;,if(contains(Links,&quot;en&quot;),&quot;English&quot;,if(contains(Links,&quot;tr&quot;),&quot;Turkish&quot;,if(contains(Links,&quot;fr&quot;),&quot;French&quot;,if(contains(Links,&quot;it&quot;),&quot;Italian&quot;,if(contains(Links,&quot;nl&quot;),&quot;Nederlands&quot;,if(contains(Links,&quot;pt&quot;),&quot;Portuguese&quot;,if(contains(Links,&quot;es&quot;),&quot;Spanish&quot;,&quot;other&quot;))))))))))"/>
+                </list>
+              </operator>
+              <operator activated="true" class="write_csv" compatibility="8.2.000" expanded="true" height="82" name="Write CSV" width="90" x="916" y="34">
+                <parameter key="csv_file" value="D:\RapidMinerProjects\Project\Crawl.csv"/>
+              </operator>
+              <connect from_op="Execute Python" from_port="output 1" to_op="Generate Attributes" to_port="example set input"/>
+              <connect from_op="Generate Attributes" from_port="example set output" to_op="Write CSV" to_port="input"/>
+              <connect from_op="Write CSV" from_port="through" to_port="out 1"/>
+              <portSpacing port="source_in 1" spacing="0"/>
+              <portSpacing port="sink_out 1" spacing="0"/>
+              <portSpacing port="sink_out 2" spacing="0"/>
+            </process>
+          </operator>
+          <operator activated="false" class="subprocess" compatibility="8.2.000" expanded="true" height="68" name="ScrapData" width="90" x="45" y="238">
+            <process expanded="true">
+              <operator activated="true" class="read_csv" compatibility="8.2.000" expanded="true" height="68" name="Read CSV" width="90" x="179" y="136">
+                <parameter key="csv_file" value="D:\RapidMinerProjects\Project\Crawl.csv"/>
+                <parameter key="escape_character" value="&quot;"/>
+                <parameter key="first_row_as_names" value="false"/>
+                <list key="annotations">
+                  <parameter key="0" value="Name"/>
+                </list>
+                <parameter key="encoding" value="windows-1253"/>
+                <list key="data_set_meta_data_information">
+                  <parameter key="0" value="Links.true.text.attribute"/>
+                  <parameter key="1" value="class.true.polynominal.attribute"/>
+                </list>
+              </operator>
+              <operator activated="true" class="python_scripting:execute_python" compatibility="7.4.000" expanded="true" height="82" name="Execute Python (2)" width="90" x="313" y="136">
+                <parameter key="script" value="import pandas as pd&#10;import bs4 as bs&#10;import urllib.request&#10;import re&#10;import sys&#10;import json&#10;&#10;&#10;def rm_main(data):&#10;&#10;&#9;data_list = []&#10;&#9;i=0&#10;&#9;for index,row in data.iterrows():&#10;&#9;&#9;url = 'https://'+row['Links']&#10;&#9;&#9;source = urllib.request.urlopen(url).read()&#10;&#9;&#9;soup = bs.BeautifulSoup(source,'lxml')&#10;&#9;&#9;if (soup.find('h2',{&quot;id&quot;: &quot;infocollect&quot;}) != None):&#10;&#9;&#9;&#9;txt = soup.find('h2',{&quot;id&quot;: &quot;infocollect&quot;}).find_next(&quot;p&quot;)&#10;&#9;&#9;&#9;data_list.append([])&#10;&#9;&#9;&#9;data_list[i].append(row['class'])&#10;&#9;&#9;&#9;data_list[i].append(txt.text)&#10;&#9;&#9;&#9;i += 1&#9;&#10;&#9;print(data_list)&#10;&#9;df = pd.DataFrame.from_records(data_list,columns=['Class','Link'])&#10;&#9;return df&#10;&#9;"/>
+              </operator>
+              <operator activated="true" class="write_csv" compatibility="8.2.000" expanded="true" height="82" name="Write CSV (2)" width="90" x="514" y="136">
+                <parameter key="csv_file" value="D:\RapidMinerProjects\Project\Scrap.csv"/>
+              </operator>
+              <connect from_op="Read CSV" from_port="output" to_op="Execute Python (2)" to_port="input 1"/>
+              <connect from_op="Execute Python (2)" from_port="output 1" to_op="Write CSV (2)" to_port="input"/>
+              <portSpacing port="source_in 1" spacing="0"/>
+              <portSpacing port="sink_out 1" spacing="0"/>
+            </process>
+          </operator>
+          <operator activated="true" class="read_csv" compatibility="8.2.000" expanded="true" height="68" name="Read CSV (2)" width="90" x="45" y="34">
+            <parameter key="csv_file" value="D:\RapidMinerProjects\Project\data.csv"/>
+            <parameter key="column_separators" value=",\s*|;\s*"/>
+            <parameter key="first_row_as_names" value="false"/>
+            <list key="annotations">
+              <parameter key="0" value="Name"/>
+            </list>
+            <parameter key="encoding" value="UTF-8"/>
+            <list key="data_set_meta_data_information">
+              <parameter key="0" value="att1.true.integer.attribute"/>
+              <parameter key="1" value="Class.true.polynominal.attribute"/>
+              <parameter key="2" value="Text.true.text.attribute"/>
+            </list>
+          </operator>
+          <operator activated="true" class="set_role" compatibility="8.2.000" expanded="true" height="82" name="Set Role" width="90" x="179" y="34">
+            <parameter key="attribute_name" value="Class"/>
+            <parameter key="target_role" value="label"/>
+            <list key="set_additional_roles"/>
+          </operator>
+          <operator activated="true" class="select_attributes" compatibility="8.2.000" expanded="true" height="82" name="Select Attributes (2)" width="90" x="313" y="34">
+            <parameter key="attribute_filter_type" value="value_type"/>
+            <parameter key="value_type" value="integer"/>
+            <parameter key="invert_selection" value="true"/>
+          </operator>
+          <operator activated="true" class="text:process_document_from_data" compatibility="8.1.000" expanded="true" height="82" name="Process Documents from Data" width="90" x="447" y="34">
+            <list key="specify_weights">
+              <parameter key="Class" value="1.0"/>
+            </list>
+            <process expanded="true">
+              <operator activated="true" class="text:tokenize" compatibility="8.1.000" expanded="true" height="68" name="Tokenize" width="90" x="782" y="34"/>
+              <operator activated="true" class="text:filter_stopwords_dictionary" compatibility="8.1.000" expanded="true" height="82" name="Filter Stopwords (Dictionary)" width="90" x="916" y="34">
+                <parameter key="file" value="D:\RapidMinerProjects\Project\stopwords\all_stopwords.txt"/>
+              </operator>
+              <operator activated="true" class="text:filter_by_length" compatibility="8.1.000" expanded="true" height="68" name="Filter Tokens (by Length)" width="90" x="1050" y="34">
+                <parameter key="min_chars" value="3"/>
+                <parameter key="max_chars" value="20"/>
+              </operator>
+              <connect from_port="document" to_op="Tokenize" to_port="document"/>
+              <connect from_op="Tokenize" from_port="document" to_op="Filter Stopwords (Dictionary)" to_port="document"/>
+              <connect from_op="Filter Stopwords (Dictionary)" from_port="document" to_op="Filter Tokens (by Length)" to_port="document"/>
+              <connect from_op="Filter Tokens (by Length)" from_port="document" to_port="document 1"/>
+              <portSpacing port="source_document" spacing="0"/>
+              <portSpacing port="sink_document 1" spacing="0"/>
+              <portSpacing port="sink_document 2" spacing="0"/>
+            </process>
+          </operator>
+          <operator activated="false" class="store" compatibility="8.2.000" expanded="true" height="68" name="Store (2)" width="90" x="514" y="289">
+            <parameter key="repository_entry" value="Project/word_list"/>
+          </operator>
+          <operator activated="false" class="concurrency:cross_validation" compatibility="8.2.000" expanded="true" height="145" name="Validation" width="90" x="648" y="136">
+            <parameter key="number_of_folds" value="7"/>
+            <parameter key="sampling_type" value="stratified sampling"/>
+            <process expanded="true">
+              <operator activated="false" class="concurrency:parallel_decision_tree" compatibility="8.2.000" expanded="true" height="103" name="Decision Tree" width="90" x="313" y="238"/>
+              <operator activated="false" class="neural_net" compatibility="8.2.000" expanded="true" height="82" name="Neural Net" width="90" x="112" y="187">
+                <list key="hidden_layers"/>
+              </operator>
+              <operator activated="true" class="naive_bayes" compatibility="8.2.000" expanded="true" height="82" name="Naive Bayes" width="90" x="179" y="34"/>
+              <operator activated="false" class="singular_value_decomposition" compatibility="8.2.000" expanded="true" height="103" name="SVD" width="90" x="112" y="289">
+                <parameter key="dimensions" value="10"/>
+              </operator>
+              <connect from_port="training set" to_op="Naive Bayes" to_port="training set"/>
+              <connect from_op="Naive Bayes" from_port="model" to_port="model"/>
+              <portSpacing port="source_training set" spacing="0"/>
+              <portSpacing port="sink_model" spacing="0"/>
+              <portSpacing port="sink_through 1" spacing="0"/>
+            </process>
+            <process expanded="true">
+              <operator activated="true" class="apply_model" compatibility="8.2.000" expanded="true" height="82" name="Apply Model" width="90" x="45" y="34">
+                <list key="application_parameters"/>
+              </operator>
+              <operator activated="true" class="performance" compatibility="8.2.000" expanded="true" height="82" name="Performance" width="90" x="179" y="34"/>
+              <connect from_port="model" to_op="Apply Model" to_port="model"/>
+              <connect from_port="test set" to_op="Apply Model" to_port="unlabelled data"/>
+              <connect from_op="Apply Model" from_port="labelled data" to_op="Performance" to_port="labelled data"/>
+              <connect from_op="Performance" from_port="performance" to_port="performance 1"/>
+              <connect from_op="Performance" from_port="example set" to_port="test set results"/>
+              <portSpacing port="source_model" spacing="0"/>
+              <portSpacing port="source_test set" spacing="0"/>
+              <portSpacing port="source_through 1" spacing="0"/>
+              <portSpacing port="sink_test set results" spacing="0"/>
+              <portSpacing port="sink_performance 1" spacing="0"/>
+              <portSpacing port="sink_performance 2" spacing="0"/>
+            </process>
+          </operator>
+          <operator activated="false" class="store" compatibility="8.2.000" expanded="true" height="68" name="Store" width="90" x="782" y="238">
+            <parameter key="repository_entry" value="Project/scrap_model"/>
+          </operator>
+          <connect from_op="Read CSV (2)" from_port="output" to_op="Set Role" to_port="example set input"/>
+          <connect from_op="Set Role" from_port="example set output" to_op="Select Attributes (2)" to_port="example set input"/>
+          <connect from_op="Select Attributes (2)" from_port="example set output" to_op="Process Documents from Data" to_port="example set"/>
+          <connect from_op="Process Documents from Data" from_port="example set" to_port="out 1"/>
+          <portSpacing port="source_in 1" spacing="0"/>
+          <portSpacing port="sink_out 1" spacing="0"/>
+          <portSpacing port="sink_out 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="retrieve" compatibility="8.2.000" expanded="true" height="68" name="Retrieve Model" width="90" x="380" y="34">
+        <parameter key="repository_entry" value="Project/scrap_model"/>
+      </operator>
+      <operator activated="true" class="retrieve" compatibility="8.2.000" expanded="true" height="68" name="Retrieve Word List" width="90" x="179" y="34">
+        <parameter key="repository_entry" value="Project/word_list"/>
+      </operator>
+      <operator activated="true" class="subprocess" compatibility="8.2.000" expanded="true" height="82" name="URL Crawl Text" width="90" x="179" y="136">
+        <process expanded="true">
+          <operator activated="true" class="web:get_webpage" compatibility="7.3.000" expanded="true" height="68" name="Get Page" width="90" x="112" y="34">
+            <parameter key="url" value="http://www.icsd.aegean.gr/icsd/"/>
+            <list key="query_parameters"/>
+            <list key="request_properties"/>
+          </operator>
+          <operator activated="true" class="web:extract_html_text_content" compatibility="7.3.000" expanded="true" height="68" name="Extract Content (2)" width="90" x="246" y="34"/>
+          <operator activated="true" class="web:unescape_html" compatibility="7.3.000" expanded="true" height="68" name="Unescape HTML Document" width="90" x="380" y="34"/>
+          <connect from_op="Get Page" from_port="output" to_op="Extract Content (2)" to_port="document"/>
+          <connect from_op="Extract Content (2)" from_port="document" to_op="Unescape HTML Document" to_port="document"/>
+          <connect from_op="Unescape HTML Document" from_port="document" to_port="out 1"/>
+          <portSpacing port="source_in 1" spacing="0"/>
+          <portSpacing port="sink_out 1" spacing="0"/>
+          <portSpacing port="sink_out 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="false" class="text:read_document" compatibility="8.1.000" expanded="true" height="68" name="Read Document" width="90" x="179" y="238">
+        <parameter key="file" value="D:\RapidMinerProjects\Project\text.txt"/>
+        <parameter key="encoding" value="UTF-8"/>
+      </operator>
+      <operator activated="true" class="text:process_documents" compatibility="8.1.000" expanded="true" height="103" name="Process Documents" width="90" x="380" y="187">
+        <parameter key="add_meta_information" value="false"/>
+        <process expanded="true">
+          <operator activated="true" class="text:tokenize" compatibility="8.1.000" expanded="true" height="68" name="Tokenize (2)" width="90" x="313" y="85"/>
+          <operator activated="true" class="text:filter_stopwords_dictionary" compatibility="8.1.000" expanded="true" height="82" name="Filter Stopwords (2)" width="90" x="447" y="85">
+            <parameter key="file" value="D:\RapidMinerProjects\Project\stopwords\all_stopwords.txt"/>
+          </operator>
+          <operator activated="true" class="text:filter_by_length" compatibility="8.1.000" expanded="true" height="68" name="Filter Tokens (2)" width="90" x="581" y="85">
+            <parameter key="min_chars" value="3"/>
+            <parameter key="max_chars" value="20"/>
+          </operator>
+          <connect from_port="document" to_op="Tokenize (2)" to_port="document"/>
+          <connect from_op="Tokenize (2)" from_port="document" to_op="Filter Stopwords (2)" to_port="document"/>
+          <connect from_op="Filter Stopwords (2)" from_port="document" to_op="Filter Tokens (2)" to_port="document"/>
+          <connect from_op="Filter Tokens (2)" from_port="document" to_port="document 1"/>
+          <portSpacing port="source_document" spacing="0"/>
+          <portSpacing port="sink_document 1" spacing="0"/>
+          <portSpacing port="sink_document 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="generate_empty_attribute" compatibility="8.2.000" expanded="true" height="82" name="Generate Empty Attribute" width="90" x="514" y="187">
+        <parameter key="name" value="Class"/>
+        <parameter key="value_type" value="polynominal"/>
+      </operator>
+      <operator activated="true" class="set_role" compatibility="8.2.000" expanded="true" height="82" name="Set Role (2)" width="90" x="648" y="187">
+        <parameter key="attribute_name" value="Class"/>
+        <parameter key="target_role" value="label"/>
+        <list key="set_additional_roles"/>
+      </operator>
+      <operator activated="true" class="apply_model" compatibility="8.2.000" expanded="true" height="82" name="Apply Model (2)" width="90" x="782" y="34">
+        <list key="application_parameters"/>
+      </operator>
+      <connect from_op="Retrieve Model" from_port="output" to_op="Apply Model (2)" to_port="model"/>
+      <connect from_op="Retrieve Word List" from_port="output" to_op="Process Documents" to_port="word list"/>
+      <connect from_op="URL Crawl Text" from_port="out 1" to_op="Process Documents" to_port="documents 1"/>
+      <connect from_op="Process Documents" from_port="example set" to_op="Generate Empty Attribute" to_port="example set input"/>
+      <connect from_op="Generate Empty Attribute" from_port="example set output" to_op="Set Role (2)" to_port="example set input"/>
+      <connect from_op="Set Role (2)" from_port="example set output" to_op="Apply Model (2)" to_port="unlabelled data"/>
+      <connect from_op="Apply Model (2)" from_port="labelled data" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+    </process>
+  </operator>
+</process>
